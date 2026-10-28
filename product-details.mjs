@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+const {JSDOM}=await import(process.env.JSDOM_PATH||'/workspace/exports/ShopDesk_Source/node_modules/jsdom/lib/api.js');
+const dom=new JSDOM('<div id="app"></div><div id="toast"></div><dialog id="modal"></dialog>',{url:'https://test.example',runScripts:'dangerously'});
+const w=dom.window;
+w.structuredClone=structuredClone;w.scrollTo=()=>{};
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true};
+w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'))};
+const fixture=[{id:1,name:'Demo keyboard',category:'Electronics',description:'Compact keyboard',specifications:'Model: K1\n<script>bad()</script>',price:'250',stock_quantity:3},{id:2,name:'Demo pen',category:'Stationery',description:'Blue pen',specifications:'Ink: Blue',price:'10',stock_quantity:0},{id:3,name:'Demo mouse',category:'Electronics',description:'Optical mouse',price:'100',stock_quantity:5}];
+let saved;
+w.fetch=async(url,opts)=>{let d=[];if(url.includes('/token?'))d={access_token:'mock',refresh_token:'mock',expires_in:3600,user:{id:'admin-fixture'}};else if(url.includes('/shop_admins'))d=[{user_id:'admin-fixture'}];else if(url.includes('/products')){if(opts.method==='PATCH'){saved=JSON.parse(opts.body);Object.assign(fixture[0],saved);d=[fixture[0]]}else d=fixture}return {ok:true,json:async()=>structuredClone(d)}};
+w.eval((await Promise.all(['config.js','app.js','backend.js'].map(f=>fs.readFile('dist/'+f,'utf8')))).join('\n')+"\nwindow.customerTest=()=>{role='customer';go('browse')};window.searchTest=()=>{query='Demo keyboard';render()};");
+async function until(fn){for(let i=0;i<100;i++){if(fn())return;await new Promise(r=>setTimeout(r,10))}throw Error('UI timeout')}
+w.login('admin');const f=w.document.getElementById('authform');f.elements.email.value='admin@example.test';f.elements.password.value='mock-password';f.dispatchEvent(new w.Event('submit',{cancelable:true}));
+await until(()=>w.document.querySelectorAll('.category-product').length===3);
+assert.equal(w.document.querySelectorAll('.category-group').length,2);
+assert.equal(w.document.querySelector('.category-group').querySelectorAll('.category-product').length,2);
+w.document.querySelector('.category-product').click();
+const dialog=w.document.getElementById('modal');assert.ok(dialog.open);assert.match(dialog.textContent,/Product information/);assert.match(dialog.textContent,/Model: K1/);assert.equal(dialog.querySelectorAll('script').length,0);
+dialog.querySelector('.formbuttons button').click();assert.equal(dialog.querySelector('[name="specifications"]').value,fixture[0].specifications);
+dialog.querySelector('[name="specifications"]').value='Model: K2';dialog.querySelector('form').dispatchEvent(new w.Event('submit',{cancelable:true}));
+await until(()=>saved&&!dialog.open);assert.equal(saved.specifications,'Model: K2');
+w.customerTest();await until(()=>w.document.querySelectorAll('.category-section').length===2);
+w.document.querySelectorAll('.product-preview')[2].click();assert.ok(dialog.querySelector('.formbuttons button').disabled,dialog.innerHTML);dialog.close();
+w.searchTest();assert.equal(w.document.querySelectorAll('.card').length,1);
+console.log('Product details UI passed: all products grouped, clickable details, escaped specifications, database payload, customer groups, out-of-stock action and search.');
+await new Promise(resolve=>setTimeout(resolve,30));
+w.close();

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2171" height="724" viewBox="0 0 2171 724" role="img" aria-labelledby="title desc">
+  <title id="title">ShopMate</title>
+  <desc id="desc">A gold shopping bag monogram beside the ShopMate wordmark.</desc>
+  <rect width="2171" height="724" fill="#000"/>
+  <g transform="translate(190 176)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M91 132V86c0-70 48-113 107-113s107 43 107 113v46" stroke="#C8A86A" stroke-width="22"/>
+    <rect x="35" y="120" width="326" height="312" rx="58" stroke="#C8A86A" stroke-width="22"/>
+    <path d="M259 209c-18-19-45-29-76-29h-20c-45 0-79 23-79 60 0 41 34 59 79 59h20c45 0 79 20 79 61 0 38-34 62-79 62h-20c-33 0-60-11-79-32" stroke="#F6F1E8" stroke-width="24"/>
+  </g>
+  <text x="620" y="427" fill="#F6F1E8" font-family="Manrope, DM Sans, Arial, sans-serif" font-size="226" font-weight="700" letter-spacing="-9">shop</text>
+  <text x="1194" y="427" fill="#C8A86A" font-family="Manrope, DM Sans, Arial, sans-serif" font-size="226" font-weight="700" letter-spacing="-9">mate</text>
+  <rect x="626" y="486" width="1010" height="8" rx="4" fill="#C8A86A" opacity=".8"/>
+</svg>
